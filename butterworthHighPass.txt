@@ -1,0 +1,73 @@
+function butterworthHighPass
+%频域高通滤波器：设计高通滤波器包括butterworth and Gaussian，在频域增强边缘。
+%选择半径和计算功率谱比，测试图像test3,4：分析各自优缺点；
+%D0为傅里叶谱图半径
+%功率谱比计算结果为L1（test1）=4.7629e-05，L2（test2）=7.3564e-04
+%==============read in=====================================================
+test1=imread('C:\Users\lenovo\Desktop\数字图像处理\第五次作业\第5次作业\test3_corrupt.pgm');
+test2=imread('C:\Users\lenovo\Desktop\数字图像处理\第五次作业\第5次作业\test4 copy.bmp');
+%==============Gauss fliter=============================================
+f1=double(test1);f2=double(test2);%把图像数据转成double型
+F1=fft2(f1);F2=fft2(f2);%fft2用于实现数字图像的二位傅里叶变换，将空间域转频率域
+F1=fftshift(F1);F2=fftshift(F2);%fftshift 将坐标原点转到傅里叶频谱图中心
+[p1,q1]=size(F1);[p2,q2]=size(F2);
+D0=75; n=2;%n表示巴特沃斯阶数
+for u=1:p1
+    for v=1:q1
+        D1(u,v)=sqrt((u-fix(p1/2))^2+(v-fix(q1/2))^2);%fix函数取整
+        %像素点（u，v）到傅里叶变换中心的距离
+        H1(u,v)=1/(1+(D0/D1(u,v))^(2*n));%巴特沃斯低通滤波函数
+        G1(u,v)=F1(u,v)*H1(u,v);%将滤波器处理后的像素点保存到对应矩阵
+    end
+end
+for u=1:p2
+    for v=1:q2
+        D2(u,v)=sqrt((u-fix(p2/2))^2+(v-fix(q2/2))^2);
+        H2(u,v)=1/(1+(D0/D2(u,v))^(2*n));%巴特沃斯高通滤波函数
+        G2(u,v)=F2(u,v)*H2(u,v);
+    end
+end
+g1=ifftshift(G1);g2=ifftshift(G2);%将原点反变换回原始位置
+g1=ifft2(g1);g2=ifft2(g2);%反傅里叶变换
+g1=uint8(real(g1));g2=uint8(real(g2));%real用于取复数实部
+%unit8将像素点数值转换为无符号8位整数
+%=========== power spectrum================================================
+s=0;s1=0;
+for i=1:p1
+    for j=1:q1
+        L1=(abs(F1(i,j)))^2;%计算原始图像功率谱于s中
+        s=s+L1;
+        L10=(abs(G1(i,j)))^2;%计算滤波后图像功率谱于s1中
+        s1=s1+L10;
+    end
+end
+L1=s1/s%计算功率谱比
+
+m=0;m1=0;
+for i=1:p2
+    for j=1:q2
+        L2=(abs(F2(i,j)))^2;%计算原始图像功率谱于s中
+        m=m+L2;
+        L20=(abs(G2(i,j)))^2;%计算滤波后图像功率谱于s1中
+        m1=m1+L20;
+    end
+end
+L2=m1/m%计算功率谱比
+%========== figure=========================================================
+figure(1);
+subplot(1,2,1);imshow(test1);title('test3 原始');
+subplot(1,2,2);imshow(g1);title('test3 after butterworthHighPass(D0=75)');
+figure(2);
+subplot(1,2,1);imshow(abs(255.*F1./max(max(F1))));title('test3 原始 傅里叶谱(D0=75)');
+subplot(1,2,2);imshow(abs(255.*G1./max(max(G1))));title('test3 巴特沃斯高通滤波后傅里叶谱(D0=75)');
+figure(3);
+imshow(abs(H1));title('test3 巴特沃斯高通滤波器（D0=75）');
+
+figure(4);
+subplot(1,2,1);imshow(test2);title('test4 原始');
+subplot(1,2,2);imshow(g2);title('test4 after butterworthHighPass(D0=75)');
+figure(5);
+subplot(1,2,1);imshow(abs(255.*F2./max(max(F2))));title('test2 原始 傅里叶谱(D0=75)');
+subplot(1,2,2);imshow(abs(255.*G2./max(max(G2))));title('test2 巴特沃斯高通滤波后傅里叶谱(D0=75)');
+figure(6);
+imshow(abs(H2));title('test2 巴特沃斯高通滤波器（D0=75）');

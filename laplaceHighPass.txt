@@ -1,0 +1,50 @@
+function laplaceHighPass
+%其他高通滤波器：拉普拉斯和Unmask，对测试图像test3,4滤波；分析各自优缺点；
+%==============read in=====================================================
+test1=imread('CUserslenovoDesktop数字图像处理第五次作业第5次作业test3_corrupt.pgm');
+test2=imread('CUserslenovoDesktop数字图像处理第五次作业第5次作业test4 copy.bmp');
+%==============Gauss fliter=============================================
+f1=double(test1);f2=double(test2);%把图像数据转成double型
+F1=fft2(f1);F2=fft2(f2);%fft2用于实现数字图像的二位傅里叶变换，将空间域转频率域
+F1=fftshift(F1);F2=fftshift(F2);%fftshift 将坐标原点转到傅里叶频谱图中心
+[p1,q1]=size(F1);[p2,q2]=size(F2);
+c=1;
+for u=1p1
+    for v=1q1
+        D1(u,v)=sqrt((u-fix(p12))^2+(v-fix(q12))^2);%fix函数取整
+        %像素点（u，v）到傅里叶变换中心的距离
+        H1(u,v)=1+c4pi^2D1(u,v)^2;%laplace滤波函数
+        G1(u,v)=F1(u,v)H1(u,v);%将滤波器处理后的像素点保存到对应矩阵
+    end
+end
+for u=1p2
+    for v=1q2
+        D2(u,v)=sqrt((u-fix(p22))^2+(v-fix(q22))^2);
+        H2(u,v)=1+c4pi^2D2(u,v)^2;%laplace滤波函数
+        G2(u,v)=F2(u,v)H2(u,v);
+    end
+end
+g1=ifftshift(G1);g2=ifftshift(G2);%将原点反变换回原始位置
+g1=ifft2(g1);g2=ifft2(g2);%反傅里叶变换
+g1=uint8(real(g1));g2=uint8(real(g2));%real用于取复数实部
+%unit8将像素点数值转换为无符号8位整数
+%========== figure=========================================================
+figure(1);
+subplot(1,2,1);imshow(test1);title('test3 原始');
+subplot(1,2,2);imshow(g1);title('test3 after laplaceHighPass');
+figure(2);
+subplot(1,2,1);imshow(abs(255.F1.max(max(F1))));title('test3 原始 傅里叶谱');
+subplot(1,2,2);imshow(abs(255.G1.max(max(G1))));title('test3 laplace高通滤波后傅里叶谱');
+figure(3);
+imshow(abs(255.H1.max(max(H1))));title('test3 laplace高通滤波器');
+
+
+figure(4);
+subplot(1,2,1);imshow(test2);title('test4 原始');
+subplot(1,2,2);imshow(g2);title('test4 after laplaceHighPass');
+
+figure(5);
+subplot(1,2,1);imshow(abs(255.F2.max(max(F2))));title('test4 原始 傅里叶谱');
+subplot(1,2,2);imshow(abs(255.G2.max(max(G2))));title('test4 laplace高通滤波后傅里叶谱');
+figure(6);
+imshow(abs(255.H2.max(max(H2))));title('test4 laplace高通滤波器');
